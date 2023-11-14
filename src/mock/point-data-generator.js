@@ -1,13 +1,10 @@
-import { cites, types } from './../const.js';
+import { cities, types } from './../const.js';
 import { generateRandomArray, getRandomArrayElement, getRandomInteger } from '../utils/common.js';
-import { pickOffersDependOnType } from '../utils/point.js';
+import { pickElementDependOnValue } from '../utils/point.js';
 import { generateRandomOffers } from './offer-data-generator.js';
 import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 
-const Gap = {
-  MIN: 1,
-  MAX: 5,
-};
 
 const Period = {
   START_DATE_MIN: -7,
@@ -23,12 +20,16 @@ const Period = {
 
 const generatePicture = () => {
   return {
-    src: `http://picsum.photos/248/152?r=${Math.random()}`,
+    src: `https://picsum.photos/248/152?r=${Math.random()}`,
   };
 };
 
 
-const generateDestination = (cites, interval) => {
+const generateDestination = (city) => {
+  const Interval = {
+    MIN: 1,
+    MAX: 5,
+  };
   const PossibleDescriptions = [
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     'Cras aliquet varius magna, non porta ligula feugiat eget.',
@@ -43,11 +44,14 @@ const generateDestination = (cites, interval) => {
     'In rutrum ac purus sit amet tempus.',
   ];
   return {
-    name: getRandomArrayElement(cites),
-    description: generateRandomArray(PossibleDescriptions, interval.MIN, interval.MAX).join(' '),
-    pictures: new Array(getRandomInteger(interval.MIN, interval.MAX)).fill(null).map(generatePicture),
+    name: city,
+    description: generateRandomArray(PossibleDescriptions, Interval.MIN, Interval.MAX).join(' '),
+    pictures: new Array(getRandomInteger(Interval.MIN, Interval.MAX)).fill(null).map(generatePicture),
   };
 };
+
+
+const generatedDescriptions = cities.map((city) => generateDestination(city));
 
 
 const createDateGenerator = () => {
@@ -62,17 +66,20 @@ const createDateGenerator = () => {
     };
   };
 };
+
+
 const generateDate = createDateGenerator();
 
+const generatedOffers = generateRandomOffers(types);
 
 const generatePointData = () => {
   const type = getRandomArrayElement(types);
-  const offers = generateRandomOffers(types);
   const dateInterval = generateDate();
   return {
+    id: nanoid(),
     type,
-    offers: pickOffersDependOnType(type, offers),
-    destination: generateDestination(cites, Gap),
+    offers: pickElementDependOnValue(type, generatedOffers),
+    destination: getRandomArrayElement(generatedDescriptions),
     basePrice: getRandomInteger(Period.BASE_PRICE_MIN, Period.BASE_PRICE_MAX),
     dateFrom: dateInterval.dateFrom,
     dateTo: dateInterval.dateTo,
@@ -80,5 +87,4 @@ const generatePointData = () => {
   };
 };
 
-
-export { generatePointData };
+export { generatePointData, generatedOffers, generatedDescriptions };
